@@ -15,6 +15,7 @@ defmodule Mix.Tasks.Solidity.Compile do
   end
 
   defp compile_contract(contract) do
+    IO.puts("*** Compiling #{contract} ***")
     System.cmd("solc", ["--abi", "--bin", "--overwrite", "-o", @output_folder, contract])
     File.write!(checksum_file(contract), checksum(contract))
   end
