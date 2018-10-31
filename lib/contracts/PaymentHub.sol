@@ -1,5 +1,7 @@
 pragma solidity ^0.4.25;
 
+import './ECDSA.sol';
+
 contract PaymentHub {
   address public owner;
   mapping(address => mapping(uint => uint)) transfers;
@@ -7,6 +9,8 @@ contract PaymentHub {
   mapping(address => uint) lastNonce;
   uint public ownerFee = 0;
   ERC20Interface token;
+
+  using ECDSA for bytes32;
 
   constructor(address _tokenAddress) public {
     owner = msg.sender;
@@ -18,12 +22,13 @@ contract PaymentHub {
     _;
   }
 
-  function withdraw(address _recipient, uint _amount, uint _nonce, string _signature) external {
+  function withdraw(address _recipient, uint _amount, uint _nonce, bytes _signature) external {
     // Verify the [_signature]
     // Extract the address that created the [_signature]
     // Compare the address found with the [owner] of the contract
-    // bytes32 memory hash = keccak256(abi.encodePacked(_recipient, _amount, _nonce));
-    require(bytes(_signature).length > 0, "Signature is invalid");
+    address signer = retrieveSigner(_recipient, _amount, _nonce, _signature);
+
+    require(signer == owner, "Invalid signature");
 
     // Check [_recipient] against the [blacklist] list
     require(blacklist[_recipient] == 0, "This recipient has been blacklisted");
@@ -53,6 +58,35 @@ contract PaymentHub {
 
     // Block address of receiving future transfers
     blacklist[_recipient] = block.timestamp;
+  }
+
+  function retrieveSigner(address _recipient, uint _amount, uint _nonce, bytes _signature) pure public returns (address) {
+    require(_recipient != 0x0);
+    require(_amount > 0);
+    require(_nonce > 0);
+
+    bytes32 message = keccak256(abi.encodePacked(uint2str(uint160(_recipient)), "_", uint2str(_amount), "_", uint2str(_nonce)));
+    bytes32 hashedMessage = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", message));
+    address signer = hashedMessage.recover(_signature);
+    return signer;
+  }
+
+  function uint2str(uint i) private pure returns (string) {
+    if (i == 0) return "0";
+    uint j = i;
+    uint len;
+    while (j != 0) { len++; j /= 10; }
+    bytes memory bstr = new bytes(len);
+    uint k = len - 1;
+    while (i != 0){ bstr[k--] = byte(48 + i % 10); i /= 10; }
+    return string(bstr);
+  }
+
+  function address2str(address x) private pure returns (string) {
+    bytes memory b = new bytes(20);
+    for (uint i = 0; i < 20; i++)
+    b[i] = byte(uint8(uint(x) / (2**(8*(19 - i)))));
+    return string(b);
   }
 }
 

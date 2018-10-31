@@ -22,7 +22,7 @@ defmodule PaymentHub.MixProject do
   defp deps do
     [
       {:ethereumex, "~> 0.4.0"},
-      {:abi, "~> 0.1.8"},
+      {:abi, "~> 0.1.8", github: "exthereum/abi", override: true},
       {:exw3, "~> 0.4.2"}
     ]
   end

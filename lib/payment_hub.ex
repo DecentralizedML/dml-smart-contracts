@@ -17,9 +17,13 @@ defmodule PaymentHub do
     %{@contract => address}
   end
 
-  def withdraw(account, amount, nonce, signature) do
-    recipient = ExW3.to_decimal(account)
+  def sign_and_withdraw(signer, recipient, amount, nonce) do
+    signature = sign_message(signer, "#{recipient |> ExW3.to_decimal()}_#{amount}_#{nonce}")
+    signed_withdraw(recipient, amount, nonce, signature)
+  end
 
+  def signed_withdraw(account, amount, nonce, signature) do
+    recipient = ExW3.to_decimal(account)
     Contract.send(@contract, :withdraw, [recipient, amount, nonce, signature], %{from: account, gas: @default_gas})
   end
 
@@ -30,6 +34,12 @@ defmodule PaymentHub do
   def blacklistAddress(account, address) do
     address = ExW3.to_decimal(address)
     Contract.send(@contract, :blacklistAddress, [address], %{from: account, gas: @default_gas})
+  end
+
+  defp sign_message(signer, message) do
+    message = ExW3.keccak256(message)
+    {:ok, signature} = ExW3.eth_sign(signer, message)
+    signature |> ExW3.to_decimal() |> :binary.encode_unsigned()
   end
 
   defp bin, do: ExW3.load_bin(output_file_path(:bin))
