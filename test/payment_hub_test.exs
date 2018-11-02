@@ -128,8 +128,8 @@ defmodule PaymentHubTest do
       assert {:ok, _} = PaymentHub.blacklistAddress(owner, account)
 
       argument = ExW3.to_decimal(account)
-      {:ok, blacklisted_at} = Contract.call(:PaymentHub, :blacklist, [argument])
-      assert blacklisted_at > 0
+      {:ok, blacklisted} = Contract.call(:PaymentHub, :isBlacklisted, [argument])
+      assert blacklisted
     end
 
     test "non-owner cannot blacklist address", %{accounts: accounts} do

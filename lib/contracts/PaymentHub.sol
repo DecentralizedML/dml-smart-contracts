@@ -4,9 +4,9 @@ import './ECDSA.sol';
 import './Ownable.sol';
 
 contract PaymentHub is Ownable {
-  mapping(address => mapping(uint => uint)) transfers;
-  mapping(address => uint) public blacklist;
-  mapping(address => uint) lastNonce;
+  mapping(address => mapping(uint => uint)) private transfers;
+  mapping(address => uint) private blacklist;
+  mapping(address => uint) private lastNonce;
   uint public ownerFee = 0;
   ERC20Interface token;
 
@@ -52,6 +52,10 @@ contract PaymentHub is Ownable {
 
     // Block address of receiving future transfers
     blacklist[_recipient] = block.timestamp;
+  }
+
+  function isBlacklisted(address _recipient) view external returns (bool) {
+    return blacklist[_recipient] > 0;
   }
 
   function retrieveSigner(address _recipient, uint _amount, uint _nonce, bytes _signature) pure public returns (address) {
