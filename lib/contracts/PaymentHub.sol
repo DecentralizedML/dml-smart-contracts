@@ -1,9 +1,9 @@
 pragma solidity ^0.4.25;
 
 import './ECDSA.sol';
+import './Ownable.sol';
 
-contract PaymentHub {
-  address public owner;
+contract PaymentHub is Ownable {
   mapping(address => mapping(uint => uint)) transfers;
   mapping(address => uint) public blacklist;
   mapping(address => uint) lastNonce;
@@ -13,13 +13,7 @@ contract PaymentHub {
   using ECDSA for bytes32;
 
   constructor(address _tokenAddress) public {
-    owner = msg.sender;
     token = ERC20Interface(_tokenAddress);
-  }
-
-  modifier protected {
-    require(msg.sender == owner, "Only owner can access this method");
-    _;
   }
 
   function withdraw(address _recipient, uint _amount, uint _nonce, bytes _signature) external {
@@ -28,7 +22,7 @@ contract PaymentHub {
     // Compare the address found with the [owner] of the contract
     address signer = retrieveSigner(_recipient, _amount, _nonce, _signature);
 
-    require(signer == owner, "Invalid signature");
+    require(signer == owner(), "Invalid signature");
 
     // Check [_recipient] against the [blacklist] list
     require(blacklist[_recipient] == 0, "This recipient has been blacklisted");
@@ -48,12 +42,12 @@ contract PaymentHub {
     require(token.transfer(_recipient, _amount - fee));
   }
 
-  function setFee(uint _fee) protected external {
+  function setFee(uint _fee) onlyOwner external {
     require(_fee != ownerFee);
     ownerFee = _fee;
   }
 
-  function blacklistAddress(address _recipient) protected external {
+  function blacklistAddress(address _recipient) onlyOwner external {
     require(blacklist[_recipient] == 0, "This address is already blacklisted");
 
     // Block address of receiving future transfers

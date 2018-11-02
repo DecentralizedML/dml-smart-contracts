@@ -117,7 +117,7 @@ defmodule PaymentHubTest do
     end
 
     test "non-owner cannot set fee", %{accounts: accounts} do
-      error = "VM Exception while processing transaction: revert Only owner can access this method"
+      error = "VM Exception while processing transaction: revert"
       assert {:error, %{"message" => ^error}} = PaymentHub.setFee(Enum.at(accounts, 1), 1)
     end
   end
@@ -133,7 +133,7 @@ defmodule PaymentHubTest do
     end
 
     test "non-owner cannot blacklist address", %{accounts: accounts} do
-      error = "VM Exception while processing transaction: revert Only owner can access this method"
+      error = "VM Exception while processing transaction: revert"
       assert {:error, %{"message" => ^error}} = PaymentHub.setFee(Enum.at(accounts, 1), 1)
     end
   end
