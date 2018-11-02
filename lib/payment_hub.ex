@@ -18,7 +18,8 @@ defmodule PaymentHub do
   end
 
   def sign_and_withdraw(signer, recipient, amount, nonce) do
-    signature = sign_message(signer, "#{recipient |> ExW3.to_decimal()}_#{amount}_#{nonce}")
+    message = <<ExW3.to_decimal(recipient)::size(160), "_", <<amount::size(256)>>, "_", (<<nonce::size(256)>>)>>
+    signature = sign_message(signer, message)
     signed_withdraw(recipient, amount, nonce, signature)
   end
 

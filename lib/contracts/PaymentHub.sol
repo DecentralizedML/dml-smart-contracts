@@ -61,32 +61,11 @@ contract PaymentHub {
   }
 
   function retrieveSigner(address _recipient, uint _amount, uint _nonce, bytes _signature) pure public returns (address) {
-    require(_recipient != 0x0);
-    require(_amount > 0);
-    require(_nonce > 0);
-
-    bytes32 message = keccak256(abi.encodePacked(uint2str(uint160(_recipient)), "_", uint2str(_amount), "_", uint2str(_nonce)));
+    bytes32 message = keccak256(abi.encodePacked(_recipient, "_", _amount, "_", _nonce));
     bytes32 hashedMessage = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", message));
     address signer = hashedMessage.recover(_signature);
+
     return signer;
-  }
-
-  function uint2str(uint i) private pure returns (string) {
-    if (i == 0) return "0";
-    uint j = i;
-    uint len;
-    while (j != 0) { len++; j /= 10; }
-    bytes memory bstr = new bytes(len);
-    uint k = len - 1;
-    while (i != 0){ bstr[k--] = byte(48 + i % 10); i /= 10; }
-    return string(bstr);
-  }
-
-  function address2str(address x) private pure returns (string) {
-    bytes memory b = new bytes(20);
-    for (uint i = 0; i < 20; i++)
-    b[i] = byte(uint8(uint(x) / (2**(8*(19 - i)))));
-    return string(b);
   }
 }
 
